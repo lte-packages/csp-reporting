@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "csp-reporting"
-version = "0.2.2"
+version = "0.2.3"
 description = "A basic Python project for npm/GitHub distribution."
 authors = [
     { name="horrocksm", email="mikeh_74_@outlook.com" }

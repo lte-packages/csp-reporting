@@ -2,7 +2,7 @@ from csp.contrib.rate_limiting import RateLimitedCSPMiddleware
 from csp.middleware import CSPMiddleware
 
 
-class CustomCSPMiddleware(CSPMiddleware):
+class CSPMiddleware(CSPMiddleware):
     def __call__(self, request):
         user = getattr(request, "user", None)
         if user and user.is_authenticated and user.is_staff:
@@ -12,7 +12,7 @@ class CustomCSPMiddleware(CSPMiddleware):
         return super().__call__(request)
 
 
-class CustomRateLimitedCSPMiddleware(RateLimitedCSPMiddleware):
+class RateLimitedCSPMiddleware(RateLimitedCSPMiddleware):
     def __call__(self, request):
         user = getattr(request, "user", None)
         if user and user.is_authenticated and user.is_staff:
