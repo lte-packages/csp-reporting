@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "csp-reporting"
-version = "0.2.3"
+version = "0.3.0"
 description = "A basic Python project for npm/GitHub distribution."
 authors = [
     { name="horrocksm", email="mikeh_74_@outlook.com" }
@@ -12,8 +12,8 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "Django>=3.2",
-    "django-csp>=3.7"
+    "Django>=4.2",
+    "django-csp>=4.0"
 ]
 
 # Setuptools-specific configuration for package discovery
