@@ -67,6 +67,16 @@ build:  ## Build the package
 	@$(PYTHON) -m pip install --quiet build
 	@$(PYTHON) -m build
 
+tag:  ## Create a git tag using the version from pyproject.toml
+	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
+	echo "Creating git tag: $$VERSION"; \
+	git tag -a "$$VERSION" -m "Release $$VERSION" && echo "Tag $$VERSION created successfully" || echo "Failed to create tag (may already exist)"
+
+tag-push:  ## Create a git tag and push it to remote
+	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
+	echo "Creating and pushing git tag: $$VERSION"; \
+	git tag -a "$$VERSION" -m "Release $$VERSION" && git push origin "$$VERSION" && echo "Tag $$VERSION created and pushed successfully" || echo "Failed to create/push tag"
+
 # release:  ## Build and upload to PyPI (requires proper credentials)
 # 	$(PYTHON) -m build
 # 	$(PYTHON) -m twine upload dist/*
