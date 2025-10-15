@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "csp-reporting"
-version = "0.1.0"
+version = "0.1.1"
 description = "A basic Python project for npm/GitHub distribution."
 authors = [
-    { name="horrocksm", email="your@email.com" }
+    { name="horrocksm", email="mikeh_74_@outlook.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.9"
@@ -16,9 +16,16 @@ dependencies = [
     "django-csp>=3.7"
 ]
 
+# Setuptools-specific configuration for package discovery
+[tool.setuptools]
+package-dir = {"" = "csp_reporting"}
+
+[tool.setuptools.packages.find]
+where = ["csp_reporting"]
+
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 exclude = [
     ".bzr",
     ".direnv",
@@ -40,6 +47,7 @@ exclude = [
     "build",
     "dist",
     "node_modules",
+    ".venv",
     "venv",
     "migrations",
 ]
