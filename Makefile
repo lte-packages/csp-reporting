@@ -64,7 +64,8 @@ pre-commit: pre-commit-install ## Run pre-commit hooks on all files
 	$(PYTHON) -m pre_commit run --all-files
 
 build:  ## Build the package
-	$(PYTHON) -m build
+	@$(PYTHON) -m pip install --quiet build
+	@$(PYTHON) -m build
 
 # release:  ## Build and upload to PyPI (requires proper credentials)
 # 	$(PYTHON) -m build
