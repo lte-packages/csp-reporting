@@ -37,5 +37,23 @@ urlpatterns = [
 ]
 ```
 
+## Middleware
+
+This package also provides custom versions of the middleware provided by the
+Django CSP package (https://django-csp.readthedocs.io/en/latest/nonce.html#middleware)
+using the version in this package bypasses CSP for logged in staff users.
+
+This can be useful when using Django CMS where the scripts break as it doesn't
+support CSP.
+
+```
+MIDDLEWARE = [
+    ...
+    'csp_reporting.middleware.CSPMiddleware,
+    ...
+]
+```
+
 ## License
+
 MIT

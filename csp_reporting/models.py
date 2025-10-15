@@ -18,4 +18,4 @@ class CSPReport(models.Model):
     )
 
     def __str__(self):
-        return f"{self.blocked_uri}({self.id}) at {self.received_at}"
+        return f"{self.blocked_uri} ({self.id}) at {self.received_at}"

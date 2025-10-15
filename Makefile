@@ -24,7 +24,7 @@ help:  ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .venv:
-	$(PYTHON) -m venv .venv
+	python -m venv .venv
 
 install:  ## Install production dependencies
 	$(PYTHON) -m pip install -e .

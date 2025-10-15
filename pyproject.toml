@@ -11,6 +11,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.9"
+license = {text = "MIT"}
 dependencies = [
     "Django>=4.2",
     "django-csp>=4.0"
@@ -80,11 +81,7 @@ ignore = [
 "__init__.py" = ["F401"]  # Allow unused imports
 "tests/*" = ["S101", "S106", "S311"]  # Allow asserts, hardcoded passwords, and pseudo-random generators in tests
 "*/migrations/*" = ["N806", "N999"]  # Allow non-lowercase variables in migrations
-"django_critical_css/management/commands/*" = ["T201"]  # Allow print in management commands
-
-[tool.ruff.lint.isort]
-known-first-party = ["django_critical_css"]
-known-third-party = ["django", "celery", "redis"]
+"csp_reporting/management/commands/*" = ["T201"]  # Allow print in management commands
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10

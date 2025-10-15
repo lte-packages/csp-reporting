@@ -3,6 +3,8 @@ from csp.middleware import CSPMiddleware
 
 
 class CSPMiddleware(CSPMiddleware):
+    """Custom CSP middleware that bypasses CSP for logged in staff users."""
+
     def __call__(self, request):
         user = getattr(request, "user", None)
         if user and user.is_authenticated and user.is_staff:
@@ -13,6 +15,9 @@ class CSPMiddleware(CSPMiddleware):
 
 
 class RateLimitedCSPMiddleware(RateLimitedCSPMiddleware):
+    """Custom Rate-Limited CSP middleware that bypasses CSP for logged
+    in staff users."""
+
     def __call__(self, request):
         user = getattr(request, "user", None)
         if user and user.is_authenticated and user.is_staff:
