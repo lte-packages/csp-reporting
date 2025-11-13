@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "csp-reporting"
-version = "0.3.1"
-description = "A basic Python project for npm/GitHub distribution."
+version = "0.3.2"
+description = "Reporting package for django-csp."
 authors = [
     { name="horrocksm", email="mikeh_74_@outlook.com" }
 ]
@@ -79,7 +79,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports
-"tests/*" = ["S101", "S106", "S311"]  # Allow asserts, hardcoded passwords, and pseudo-random generators in tests
+"*/tests.py" = ["S101", "S106", "S311", "B007"]  # Allow asserts, hardcoded passwords, and pseudo-random generators in tests
+"tests/*" = ["S101", "S106", "S311", "B007"]  # Allow asserts, hardcoded passwords, and pseudo-random generators in tests
 "*/migrations/*" = ["N806", "N999"]  # Allow non-lowercase variables in migrations
 "csp_reporting/management/commands/*" = ["T201"]  # Allow print in management commands
 
