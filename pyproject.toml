@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "csp-reporting"
-version = "0.3.2"
+version = "0.3.3"
 description = "Reporting package for django-csp."
 authors = [
     { name="horrocksm", email="mikeh_74_@outlook.com" }
