@@ -42,10 +42,7 @@ format:  ## Format code with ruff
 	$(PYTHON) -m ruff check --fix .
 
 test:  ## Run tests with pytest
-	$(PYTHON) -m pytest
-
-test-cov:  ## Run tests with coverage
-	$(PYTHON) -m pytest --cov=django_critical_css --cov-report=html --cov-report=term-missing
+	$(PYTHON) -m pytest csp_reporting/tests.py -v
 
 clean:  ## Clean up build artifacts
 	rm -rf build/
@@ -61,6 +58,9 @@ pre-commit-install:  ## Ensure pre-commit is installed and run hooks on all file
 	$(PYTHON) -m pre_commit install
 
 pre-commit: pre-commit-install ## Run pre-commit hooks on all files
+	$(PYTHON) -m pre_commit run
+
+pre-commit-all: pre-commit-install ## Run pre-commit hooks on all files
 	$(PYTHON) -m pre_commit run --all-files
 
 build:  ## Build the package
