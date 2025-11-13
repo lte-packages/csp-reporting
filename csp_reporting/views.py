@@ -38,12 +38,18 @@ CSP_REPORT_FIELDS = {
 
 def validate_origin(request):
     """
-    Validate that the referrer matches one of the allowed origins.
+    Validate that the origin or referrer matches one of the allowed origins.
+    Firefox sends Origin header, Edge sends both Origin and Referer.
     Returns True if valid, False otherwise.
     """
+    # Try Origin header first (sent by Firefox and Edge)
+    origin = request.META.get("HTTP_ORIGIN", "")
+
+    # Fall back to Referer header if Origin is not present
     referer = request.META.get("HTTP_REFERER", "")
-    if not referer:
-        logger.warning("CSP report received without referer header")
+
+    if not origin and not referer:
+        logger.warning("CSP report received without origin or referer header")
         return False
 
     # Get allowed origins from settings, fallback to request origin
@@ -57,13 +63,17 @@ def validate_origin(request):
             f"http://{request_host}",
         ]
 
-    referer_origin = f"{urlparse(referer).scheme}://{urlparse(referer).netloc}"
+    # Use Origin header if available, otherwise extract origin from Referer
+    if origin:
+        request_origin = origin.rstrip("/")
+    else:
+        request_origin = f"{urlparse(referer).scheme}://{urlparse(referer).netloc}"
 
     for allowed_origin in allowed_origins:
-        if referer_origin == allowed_origin.rstrip("/"):
+        if request_origin == allowed_origin.rstrip("/"):
             return True
 
-    logger.warning(f"CSP report from unauthorized origin: {referer_origin}")
+    logger.warning(f"CSP report from unauthorized origin: {request_origin}")
     return False
 
 
