@@ -17,5 +17,9 @@ class CSPReport(models.Model):
         null=True,
     )
 
+    class Meta:
+        verbose_name = "CSP Report"
+        verbose_name_plural = "Reports"
+
     def __str__(self):
         return f"{self.blocked_uri} ({self.id}) at {self.received_at}"
