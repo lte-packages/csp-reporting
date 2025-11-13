@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "MIT"}
+license-files = ["LICENSE"]
 dependencies = [
     "Django>=4.2",
     "django-csp>=4.0"
