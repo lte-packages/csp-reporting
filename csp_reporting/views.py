@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.signing import Signer
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -91,27 +92,44 @@ def get_client_ip(request):
     return ip
 
 
+def get_cache_key(request):
+    # Get client identifier (IP address) and create a privacy-preserving hash
+    client_ip = get_client_ip(request)
+
+    # Use Django's Signer to create a consistent, one-way hash of the IP
+    # This prevents storing raw IP addresses in cache while maintaining rate limiting
+    signer = Signer(salt="csp_report_rate_limit")
+    ip_hash = signer.signature(client_ip)
+    return f"csp_report_rate_limit:{ip_hash}"
+
+
 def check_rate_limit(request):
     """
     Check if the request exceeds the rate limit.
     Returns (is_allowed: bool, retry_after: int or None).
     """
     # Check if rate limiting is enabled
-    rate_limit_enabled = getattr(settings, "CSP_REPORT_RATE_LIMIT_ENABLED", True)
+    rate_limit_enabled = getattr(
+        settings,
+        "CSP_REPORT_RATE_LIMIT_ENABLED",
+        True,
+    )
     if not rate_limit_enabled:
         return True, None
 
     # Get rate limit settings
     max_requests = getattr(
-        settings, "CSP_REPORT_RATE_LIMIT_REQUESTS", DEFAULT_RATE_LIMIT_REQUESTS
+        settings,
+        "CSP_REPORT_RATE_LIMIT_REQUESTS",
+        DEFAULT_RATE_LIMIT_REQUESTS,
     )
     window_seconds = getattr(
-        settings, "CSP_REPORT_RATE_LIMIT_WINDOW", DEFAULT_RATE_LIMIT_WINDOW
+        settings,
+        "CSP_REPORT_RATE_LIMIT_WINDOW",
+        DEFAULT_RATE_LIMIT_WINDOW,
     )
 
-    # Get client identifier (IP address)
-    client_ip = get_client_ip(request)
-    cache_key = f"csp_report_rate_limit:{client_ip}"
+    cache_key = get_cache_key(request)
 
     # Get current request data from cache
     current_data = cache.get(cache_key)
@@ -143,7 +161,7 @@ def check_rate_limit(request):
         # Rate limit exceeded
         retry_after = window_seconds - time_elapsed
         logger.warning(
-            f"Rate limit exceeded for IP {client_ip}: "
+            f"Rate limit exceeded for client: "
             f"{current_data['count']} requests in {time_elapsed}s"
         )
         return False, retry_after
