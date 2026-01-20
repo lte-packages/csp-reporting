@@ -20,6 +20,7 @@ class CSPReportAdmin(admin.ModelAdmin):
         "document_uri",
         "received_at",
     )
+    list_filter = ("violated_directive",)
     readonly_fields = (
         "received_at",
         "raw_report",

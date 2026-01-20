@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django.db import models
 
 
@@ -22,4 +24,15 @@ class CSPReport(models.Model):
         verbose_name_plural = "Reports"
 
     def __str__(self):
-        return f"{self.blocked_uri} ({self.id}) at {self.received_at}"
+        uri = (self.blocked_uri or "").strip()
+        if not uri:
+            return f"({self.id}) at {self.received_at}"
+        parsed = urlparse(uri)
+        scheme = parsed.scheme
+        netloc = parsed.netloc
+        if not netloc:
+            parsed = urlparse("//" + uri)
+            netloc = parsed.netloc
+        host = f"{scheme}://{netloc}" if scheme else netloc
+        host = host or uri
+        return f"{host} ({self.id}) at {self.received_at}"
