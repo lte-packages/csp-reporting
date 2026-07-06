@@ -9,7 +9,9 @@ from django.core.signing import Signer
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from .filters import categorize_violation
 from .models import CSPReport
+from .signals import csp_violation
 
 logger = logging.getLogger(__name__)
 
@@ -282,13 +284,53 @@ def csp_report_view(request):
             # Sanitize the report
             sanitized_report = sanitize_csp_report(report)
 
-            # Create the report with sanitized data
-            CSPReport.objects.create(
-                raw_report=sanitized_report,
-                blocked_uri=sanitized_report.get("blocked-uri"),
-                document_uri=sanitized_report.get("document-uri"),
-                violated_directive=sanitized_report.get("violated-directive"),
+            # Categorize the violation
+            blocked_uri = sanitized_report.get("blocked-uri", "")
+            document_uri = sanitized_report.get("document-uri", "")
+            category = categorize_violation(blocked_uri, document_uri)
+
+            # Check if filtering is enabled
+            filter_enabled = getattr(settings, "CSP_REPORT_FILTER_ENABLED", True)
+            ignore_network_filters = getattr(
+                settings, "CSP_REPORT_IGNORE_NETWORK_FILTERS", True
             )
+
+            # Decide whether to ignore this violation
+            should_ignore = False
+            if (
+                filter_enabled
+                and ignore_network_filters
+                and category == "network_filter"
+            ):
+                should_ignore = True
+                logger.debug(f"Ignoring network filter CSP violation: {blocked_uri}")
+
+            # Create the report (unless configured to ignore)
+            if not should_ignore:
+                report_obj = CSPReport.objects.create(
+                    raw_report=sanitized_report,
+                    blocked_uri=blocked_uri,
+                    document_uri=document_uri,
+                    violated_directive=sanitized_report.get("violated-directive"),
+                )
+
+                # Emit signal for downstream processing
+                csp_violation.send(
+                    sender=CSPReport,
+                    violation=sanitized_report,
+                    category=category,
+                    report=report_obj,
+                    ignored=False,
+                )
+            else:
+                # Still emit signal for ignored violations (apps may want to track them)
+                csp_violation.send(
+                    sender=CSPReport,
+                    violation=sanitized_report,
+                    category=category,
+                    report=None,
+                    ignored=True,
+                )
 
             return JsonResponse({"status": "ok"}, status=201)
 

@@ -36,3 +36,19 @@ class CSPReport(models.Model):
         host = f"{scheme}://{netloc}" if scheme else netloc
         host = host or uri
         return f"{host} ({self.id}) at {self.received_at}"
+
+    @property
+    def category(self):
+        """
+        Dynamically categorize the CSP violation based on its blocked URI.
+
+        Returns:
+            str: Category of the violation
+                'network_filter': Known corporate/ISP security tools
+                'suspicious': Possible malware or browser extensions
+                'legitimate': Actual violation from application
+                'unknown': Needs manual review
+        """
+        from .filters import categorize_violation
+
+        return categorize_violation(self.blocked_uri, self.document_uri)
