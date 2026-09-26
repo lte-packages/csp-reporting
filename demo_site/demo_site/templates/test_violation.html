@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Violation - CSP Testing{% endblock %}
+
+{% block extra_css %}
+<style>
+    .violation-trigger {
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .violation-trigger h3 {
+        color: #856404;
+        margin-bottom: 10px;
+    }
+
+    .violation-list {
+        list-style-position: inside;
+    }
+
+    .violation-list li {
+        margin-bottom: 8px;
+        color: #555;
+    }
+
+    .code-example {
+        background-color: #f5f5f5;
+        border-left: 3px solid #ff6600;
+        padding: 10px 15px;
+        margin: 10px 0;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        overflow-x: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="alert alert-warning">
+    <strong>⚠️ Intentional CSP Violations</strong> This page contains code that intentionally violates the CSP policy to test violation reporting. CSP violation reports should be generated and collected automatically.
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h2>Inline Script Violation</h2>
+        <p>This section contains an inline script that violates the CSP policy:</p>
+        <button class="btn" onclick="triggerInlineScriptViolation()">Trigger Inline Script Violation</button>
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">The <code>onclick</code> handler is an inline script that may violate strict CSP policies.</p>
+    </div>
+
+    <div class="card">
+        <h2>Image from External Source</h2>
+        <p>Attempting to load an image from an untrusted external source:</p>
+        <img id="external-image" style="max-width: 100%; margin-top: 10px; display: none;" alt="External image">
+        <button class="btn" onclick="triggerImageViolation()">Load External Image</button>
+        <p style="margin-top: 10px; font-size: 12px; color: #666;">If <code>img-src</code> restrictions are in place, this should trigger a violation.</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>📝 Violations Triggered on This Page</h2>
+    <div class="violation-trigger">
+        <h3>1. Inline Script Handler</h3>
+        <p>The button above uses an <code>onclick</code> attribute:</p>
+        <div class="code-example">&lt;button onclick="triggerInlineScriptViolation()"&gt;...</div>
+        <p><strong>Expected Violation:</strong> Script violates CSP if <code>script-src</code> directive doesn't allow inline scripts.</p>
+    </div>
+
+    <div class="violation-trigger">
+        <h3>2. External Image Load</h3>
+        <p>The image button attempts to load from an external domain:</p>
+        <div class="code-example">img.src = "https://example.com/image.jpg";</div>
+        <p><strong>Expected Violation:</strong> Violates CSP if domain is not in <code>img-src</code> directive.</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>🔍 Monitoring Reports</h2>
+    <ol style="list-style-position: inside;">
+        <li style="margin-bottom: 10px;">Trigger violations on this page using the buttons above</li>
+        <li style="margin-bottom: 10px;">Check your browser's console (F12 → Console tab) for CSP violation messages</li>
+        <li style="margin-bottom: 10px;">Visit the <a href="/admin/">Django Admin</a> → CSPReport to view collected violations</li>
+        <li style="margin-bottom: 10px;">Each violation should include details like violated directive and blocked URI</li>
+    </ol>
+</div>
+
+<script>
+function triggerInlineScriptViolation() {
+    alert('This inline event handler may trigger a CSP violation!\n\nCheck your browser console and Django admin for the report.');
+    console.log('Inline script violation triggered at:', new Date().toISOString());
+}
+
+function triggerImageViolation() {
+    const img = document.getElementById('external-image');
+    img.src = 'https://example.com/invalid-image-for-csp-testing.jpg';
+    img.style.display = 'block';
+    img.onerror = function() {
+        console.log('Image load failed (expected for CSP violation test)');
+    };
+    console.log('Attempting to load external image at:', new Date().toISOString());
+}
+</script>
+{% endblock %}
