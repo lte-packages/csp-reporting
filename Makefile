@@ -1,5 +1,5 @@
 # Development Tasks
-.PHONY: help install install-dev lint format test clean pre-commit
+.PHONY: help install install-dev lint format test clean pre-commit build coverage
 
 # Define variables
 PACKAGE_NAME = csp_reporting
@@ -9,7 +9,7 @@ help:  ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .venv:  ## Create a virtual environment
 	python -m venv .venv
@@ -32,17 +32,27 @@ format:  ## Format code with ruff
 test:  ## Run tests with pytest
 	$(PYTHON) -m pytest csp_reporting/tests.py -v
 
+coverage:  ## Run tests with coverage report
+	$(PYTHON) -m pytest csp_reporting/tests.py --cov=csp_reporting --cov-report=html --cov-report=term
+	@echo "Coverage report: htmlcov/index.html"
+
+build:  ## Build the package for distribution
+	$(PYTHON) -m pip install build
+	$(PYTHON) -m build
+
 clean:  ## Clean up build artifacts
 	rm -rf build/
 	rm -rf dist/
 	rm -rf *.egg-info/
 	rm -rf htmlcov/
 	rm -rf .coverage
-	rm -rf .venv/
 	find . -type d -name __pycache__ -delete
 	find . -type f -name "*.pyc" -delete
 
-pre-commit: ## Run pre-commit hooks on all files
+clean-all: clean  ## Clean everything including virtual environment
+	rm -rf .venv/
+
+pre-commit: ## Run pre-commit hooks on changed files
 	$(PYTHON) -m pre_commit run
 
 pre-commit-all: ## Run pre-commit hooks on all files

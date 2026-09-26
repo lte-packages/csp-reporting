@@ -1,23 +1,32 @@
 import json
 import logging
 import time
+from typing import Any
 from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.cache import cache
 from django.core.signing import Signer
-from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    JsonResponse,
+)
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import CSPReport
 
 logger = logging.getLogger(__name__)
 
-# Default maximum size for CSP report (in bytes) - 100KB should be more than enough
-DEFAULT_MAX_REPORT_SIZE = 100 * 1024
+# Constants for CSP report processing
+DEFAULT_MAX_REPORT_SIZE = 100 * 1024  # 100KB
+MAX_STRING_FIELD_LENGTH = 2048  # Max length for string fields
+MAX_UNKNOWN_CSP_FIELDS = 3  # Allow a few unknown fields for spec evolution
 
 # Rate limiting defaults
-DEFAULT_RATE_LIMIT_REQUESTS = 100  # requests
+DEFAULT_RATE_LIMIT_REQUESTS = 100  # requests per window
 DEFAULT_RATE_LIMIT_WINDOW = 3600  # seconds (1 hour)
 
 # Expected CSP report fields according to the spec
@@ -37,11 +46,16 @@ CSP_REPORT_FIELDS = {
 }
 
 
-def validate_origin(request):
-    """
-    Validate that the origin or referrer matches one of the allowed origins.
+def validate_origin(request: HttpRequest) -> bool:
+    """Validate that the origin or referrer matches one of the allowed origins.
+
     Firefox sends Origin header, Edge sends both Origin and Referer.
-    Returns True if valid, False otherwise.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        bool: True if origin is valid, False otherwise
     """
     # Try Origin header first (sent by Firefox and Edge)
     origin = request.META.get("HTTP_ORIGIN", "")
@@ -78,10 +92,16 @@ def validate_origin(request):
     return False
 
 
-def get_client_ip(request):
-    """
-    Get the client IP address from the request.
+def get_client_ip(request: HttpRequest) -> str:
+    """Get the client IP address from the request.
+
     Handles X-Forwarded-For header for proxied requests.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        str: The client IP address
     """
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
@@ -92,21 +112,33 @@ def get_client_ip(request):
     return ip
 
 
-def get_cache_key(request):
-    # Get client identifier (IP address) and create a privacy-preserving hash
-    client_ip = get_client_ip(request)
+def get_cache_key(request: HttpRequest) -> str:
+    """Get cache key for rate limiting.
 
-    # Use Django's Signer to create a consistent, one-way hash of the IP
-    # This prevents storing raw IP addresses in cache while maintaining rate limiting
+    Get client identifier (IP address) and create a privacy-preserving hash.
+    Uses Django's Signer to create a consistent, one-way hash of the IP.
+    This prevents storing raw IP addresses in cache while maintaining rate limiting.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        str: Cache key for rate limiting
+    """
+    client_ip = get_client_ip(request)
     signer = Signer(salt="csp_report_rate_limit")
     ip_hash = signer.signature(client_ip)
     return f"csp_report_rate_limit:{ip_hash}"
 
 
-def check_rate_limit(request):
-    """
-    Check if the request exceeds the rate limit.
-    Returns (is_allowed: bool, retry_after: int or None).
+def check_rate_limit(request: HttpRequest) -> tuple[bool, int | None]:
+    """Check if the request exceeds the rate limit.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        tuple[bool, int | None]: (is_allowed, retry_after_seconds)
     """
     # Check if rate limiting is enabled
     rate_limit_enabled = getattr(
@@ -173,17 +205,20 @@ def check_rate_limit(request):
     return True, None
 
 
-def validate_csp_report_structure(report):
-    """
-    Validate that the report looks like a legitimate CSP report.
-    Returns True if valid, False otherwise.
+def validate_csp_report_structure(report: dict[str, Any]) -> bool:
+    """Validate that the report looks like a legitimate CSP report.
+
+    Args:
+        report: The CSP report dictionary to validate
+
+    Returns:
+        bool: True if valid, False otherwise
     """
     if not isinstance(report, dict):
         return False
 
     # Check that we have at least some of the expected CSP fields
     report_keys = set(report.keys())
-    # common_fields = report_keys.intersection(CSP_REPORT_FIELDS)
 
     # At minimum, we should have document-uri and violated-directive
     required_fields = {"document-uri", "violated-directive"}
@@ -193,17 +228,26 @@ def validate_csp_report_structure(report):
 
     # Check for suspicious extra fields that shouldn't be in a CSP report
     unknown_fields = report_keys - CSP_REPORT_FIELDS
-    if len(unknown_fields) > 3:  # Allow a few unknown fields for future spec changes
+    if len(unknown_fields) > MAX_UNKNOWN_CSP_FIELDS:
         logger.warning(f"CSP report has too many unknown fields: {unknown_fields}")
         return False
 
     return True
 
 
-def sanitize_string_field(value, max_length=2048):
-    """
-    Sanitize a string field from the CSP report.
+def sanitize_string_field(
+    value: Any, max_length: int = MAX_STRING_FIELD_LENGTH
+) -> str | None:
+    """Sanitize a string field from the CSP report.
+
     Limits length and ensures it's a string.
+
+    Args:
+        value: The value to sanitize
+        max_length: Maximum length for the string
+
+    Returns:
+        str | None: The sanitized string, or None if input is None
     """
     if value is None:
         return None
@@ -212,10 +256,16 @@ def sanitize_string_field(value, max_length=2048):
     return value[:max_length]
 
 
-def sanitize_csp_report(report):
-    """
-    Sanitize the CSP report data to prevent injection attacks
-    and ensure data integrity.
+def sanitize_csp_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Sanitize the CSP report data to prevent injection attacks.
+
+    Ensures data integrity and prevents malicious payloads.
+
+    Args:
+        report: The CSP report dictionary to sanitize
+
+    Returns:
+        dict[str, Any]: The sanitized report
     """
     sanitized = {}
 
@@ -242,7 +292,18 @@ def sanitize_csp_report(report):
 
 
 @csrf_exempt
-def csp_report_view(request):
+def csp_report_view(request: HttpRequest) -> HttpResponse:
+    """Handle CSP report submissions from browsers.
+
+    Validates, sanitizes, and stores CSP violation reports with security checks
+    including origin validation, rate limiting, and report structure validation.
+
+    Args:
+        request: Django HttpRequest object
+
+    Returns:
+        HttpResponse: JSON response with status code
+    """
     if request.method == "POST":
         # Check rate limit first (before doing any expensive operations)
         is_allowed, retry_after = check_rate_limit(request)

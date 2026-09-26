@@ -6,21 +6,47 @@ build-backend = "setuptools.build_meta"
 name = "csp-reporting"
 version = "0.3.6"
 description = "Reporting package for django-csp."
-authors = [
-    { name="horrocksm", email="mikeh_74_@outlook.com" }
-]
 readme = "README.md"
 requires-python = ">=3.10"
 license-files = ["LICENSE"]
+authors = [
+    { name="horrocksm", email="mikeh_74_@outlook.com" }
+]
+keywords = ["django", "csp", "security", "reporting", "content-security-policy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Internet :: WWW/HTTP",
+]
 dependencies = [
     "Django>=4.2,<6.0",
     "django-csp>=4.0"
 ]
 
+[project.urls]
+Homepage = "https://github.com/lte-packages/csp-reporting"
+Repository = "https://github.com/lte-packages/csp-reporting.git"
+Issues = "https://github.com/lte-packages/csp-reporting/issues"
+Changelog = "https://github.com/lte-packages/csp-reporting/releases"
+
 [project.optional-dependencies]
 dev = [
     "ruff>=0.1.0",
     "pytest>=7.0",
+    "pytest-django>=4.5",
+    "pytest-cov>=4.0",
     "pre-commit>=3.0",
     "build>=0.10.0",
 ]

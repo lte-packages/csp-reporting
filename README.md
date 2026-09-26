@@ -12,25 +12,26 @@ system or simply as part of your existing Django project.
 
 ## Installation
 
-This package is not published to pypi so install from github:
+This package is not published to PyPI so install from GitHub:
 
-```
-pip install git+https://github.com/lte-packages/csp-reporting.git@0.2.2
+```bash
+pip install git+https://github.com/lte-packages/csp-reporting.git@main
 ```
 
 Then add to your installed apps in your settings:
 
-```
+```python
 INSTALLED_APPS = [
     'csp',
     'csp_reporting',
 ]
-
 ```
 
 Add to your urls.py:
 
-```
+```python
+from django.urls import path, include
+
 urlpatterns = [
     ...
     path("csp/", include("csp_reporting.urls")),
@@ -40,17 +41,30 @@ urlpatterns = [
 
 ## Middleware
 
-This package also provides custom versions of the middleware provided by the
-Django CSP package (https://django-csp.readthedocs.io/en/latest/nonce.html#middleware)
-using the version in this package bypasses CSP for logged in staff users.
+This package provides custom versions of the middleware from the [Django CSP package](https://django-csp.readthedocs.io/en/latest/nonce.html#middleware) with an additional feature: these implementations bypass CSP for logged-in staff users.
 
-This can be useful when using Django CMS where the scripts break as it doesn't
-support CSP.
+This is useful when using Django CMS where scripts break due to CSP restrictions, allowing staff users to edit content without CSP constraints.
 
-```
+### CSPMiddleware
+
+Basic CSP middleware with staff exemption:
+
+```python
 MIDDLEWARE = [
     ...
-    'csp_reporting.middleware.CSPMiddleware,
+    'csp_reporting.middleware.CSPMiddleware',
+    ...
+]
+```
+
+### RateLimitedCSPMiddleware
+
+CSP middleware with built-in rate limiting and staff exemption:
+
+```python
+MIDDLEWARE = [
+    ...
+    'csp_reporting.middleware.RateLimitedCSPMiddleware',
     ...
 ]
 ```
