@@ -44,9 +44,9 @@ Changelog = "https://github.com/lte-packages/csp-reporting/releases"
 [project.optional-dependencies]
 dev = [
     "ruff>=0.1.0",
+    "coverage>=7.0",
     "pytest>=7.0",
     "pytest-django>=4.5",
-    "pytest-cov>=4.0",
     "pre-commit>=3.0",
     "build>=0.10.0",
 ]
@@ -57,6 +57,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
+exclude = ["tests", "demo_site"]
 
 [tool.ruff]
 line-length = 88
@@ -113,10 +114,18 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports
-"*/tests.py" = ["S101", "S106", "S311", "B007"]  # Allow asserts, hardcoded passwords, and pseudo-random generators in tests
 "tests/*" = ["S101", "S106", "S311", "B007"]  # Allow asserts, hardcoded passwords, and pseudo-random generators in tests
 "*/migrations/*" = ["N806", "N999"]  # Allow non-lowercase variables in migrations
 "csp_reporting/management/commands/*" = ["T201"]  # Allow print in management commands
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--strict-markers -v"
+markers = [
+    "django_db: Mark test as requiring database access",
+]

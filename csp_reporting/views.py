@@ -324,8 +324,9 @@ def csp_report_view(request: HttpRequest) -> HttpResponse:
             logger.warning(f"CSP report too large: {content_length} bytes")
             return HttpResponseBadRequest("Report too large")
 
-        # Validate origin
-        if not validate_origin(request):
+        # Validate origin (can be disabled in development via CSP_REPORT_VALIDATION_ENABLED)
+        validation_enabled = getattr(settings, "CSP_REPORT_VALIDATION_ENABLED", True)
+        if validation_enabled and not validate_origin(request):
             return HttpResponseForbidden("Invalid origin")
 
         try:

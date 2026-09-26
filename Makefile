@@ -4,6 +4,7 @@
 # Define variables
 PACKAGE_NAME = csp_reporting
 PYTHON = .venv/bin/python
+PYTEST_ENV = PYTHONPATH=.
 
 help:  ## Show this help message
 	@echo 'Usage: make [target]'
@@ -29,15 +30,22 @@ format:  ## Format code with ruff
 	$(PYTHON) -m ruff format .
 	$(PYTHON) -m ruff check --fix .
 
+run_command:  ## Run a custom management command
+	$(PYTHON) ./demo_site/manage.py $(cmd) $(args)
+
+run:  ## Run the development server
+	$(PYTHON) ./demo_site/manage.py runserver 127.0.0.1:8000
+
 test:  ## Run tests with pytest
-	$(PYTHON) -m pytest csp_reporting/tests.py -v
+	$(PYTEST_ENV) $(PYTHON) -m pytest tests/ -v
 
 coverage:  ## Run tests with coverage report
-	$(PYTHON) -m pytest csp_reporting/tests.py --cov=csp_reporting --cov-report=html --cov-report=term
+	$(PYTEST_ENV) $(PYTHON) -m coverage run --source=csp_reporting -m pytest tests/
+	$(PYTHON) -m coverage report
+	$(PYTHON) -m coverage html
 	@echo "Coverage report: htmlcov/index.html"
 
 build:  ## Build the package for distribution
-	$(PYTHON) -m pip install build
 	$(PYTHON) -m build
 
 clean:  ## Clean up build artifacts

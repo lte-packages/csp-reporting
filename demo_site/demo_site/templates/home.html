@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - CSP Testing{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pad-btm-sm {
+        padding-bottom: 10px;
+    }
+
+    ol {
+        list-style-position: inside;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="alert alert-info">
+    <strong>Welcome to the CSP Testing Suite!</strong> This application is configured with Content Security Policy settings to help test and verify CSP violation reporting.
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h2>📋 About This Demo</h2>
+        <p>This is a Django demo site specifically designed to:</p>
+        <ul>
+            <li>Test CSP (Content Security Policy) configuration</li>
+            <li>Verify CSP violation reporting functionality</li>
+            <li>Ensure violations are properly collected and stored</li>
+            <li>Provide a development and testing environment</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🔐 Current CSP Configuration</h2>
+        <p>The following CSP directives are active:</p>
+        <ul>
+            <li><code>default-src 'self'</code></li>
+            <li><code>script-src 'self' 'unsafe-inline'</code></li>
+            <li><code>style-src 'self' 'unsafe-inline'</code></li>
+            <li><code>img-src 'self' data: https:</code></li>
+            <li><code>font-src 'self'</code></li>
+        </ul>
+        <p>CSP violations will be reported to <code>/csp/report/</code></p>
+    </div>
+
+    <div class="card">
+        <h2>🧪 Testing Tools</h2>
+        <p>Use the following tools to test CSP functionality:</p>
+        <a href="/test-violation/" class="btn btn-accent" style="margin-top: 10px;">Trigger CSP Violation</a>
+        <p style="margin-top: 10px; font-size: 12px; color: #999;">Visit the test page to intentionally trigger CSP violations for collection testing.</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>📊 Monitoring CSP Reports</h2>
+    <p>All CSP violations will be automatically collected and stored in the database. You can:</p>
+    <ul>
+        <li>Visit the <a href="/admin/">Django Admin</a> to view collected CSP reports</li>
+        <li>Check the <code>CSPReport</code> model in the admin interface</li>
+        <li>Monitor violation patterns and frequencies</li>
+        <li>Use this data to refine your CSP policies</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>🚀 Getting Started</h2>
+    <ol>
+        <li class="pad-btm-sm">Review the current CSP configuration in Django admin or source code</li>
+        <li class="pad-btm-sm">Navigate to the <a href="/test-violation/">Test Violation page</a> to trigger intentional violations</li>
+        <li class="pad-btm-sm">Check the Django admin to verify violations were reported</li>
+        <li class="pad-btm-sm">Adjust CSP settings as needed and test again</li>
+    </ol>
+</div>
+
+<div class="alert alert-warning">
+    <strong>⚠️ Development Environment</strong> This demo is running with DEBUG=True and relaxed CSP settings to enable development testing. Do not use this configuration in production.
+</div>
+{% endblock %}
