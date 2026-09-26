@@ -227,7 +227,7 @@ class CSPReportRateLimitTests(TestCase):
                 REMOTE_ADDR="192.168.1.100",
             )
             response = csp_report_view(request)
-            self.assertEqual(response.status_code, 201, f"Request {i+1} failed")
+            self.assertEqual(response.status_code, 201, f"Request {i + 1} failed")
 
         self.assertEqual(CSPReport.objects.count(), 5)
 
@@ -248,7 +248,9 @@ class CSPReportRateLimitTests(TestCase):
                 REMOTE_ADDR="192.168.1.100",
             )
             response = csp_report_view(request)
-            self.assertEqual(response.status_code, 201, f"Request {i+1} should succeed")
+            self.assertEqual(
+                response.status_code, 201, f"Request {i + 1} should succeed"
+            )
 
         # 4th request should be rate limited
         request = self.factory.post(
@@ -320,7 +322,9 @@ class CSPReportRateLimitTests(TestCase):
                 REMOTE_ADDR="192.168.1.100",
             )
             response = csp_report_view(request)
-            self.assertEqual(response.status_code, 201, f"Request {i+1} should succeed")
+            self.assertEqual(
+                response.status_code, 201, f"Request {i + 1} should succeed"
+            )
 
         self.assertEqual(CSPReport.objects.count(), 10)
 

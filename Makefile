@@ -3,19 +3,7 @@
 
 # Define variables
 PACKAGE_NAME = csp_reporting
-
-# check if a python virtual environment is activated
-ifneq (,$(VIRTUAL_ENV))
-	PYTHON = $(VIRTUAL_ENV)/bin/python
-endif
-
-# redefine PYTHON if PYTHON_PATH is set in .env
-# or fallback to .venv/bin/python
-ifneq (,$(PYTHON_PATH))
-	PYTHON = $(PYTHON_PATH)
-else
-	PYTHON = .venv/bin/python
-endif
+PYTHON = .venv/bin/python
 
 help:  ## Show this help message
 	@echo 'Usage: make [target]'
@@ -23,18 +11,18 @@ help:  ## Show this help message
 	@echo 'Targets:'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-.venv:
+.venv:  ## Create a virtual environment
 	python -m venv .venv
+	$(PYTHON) -m pip install --upgrade pip
 
-install:  ## Install production dependencies
+install: .venv  ## Install production dependencies
 	$(PYTHON) -m pip install -e .
 
-install-dev:  ## Install development dependencies
+install-dev: .venv  ## Install development dependencies
 	$(PYTHON) -m pip install -e ".[dev]"
 	$(PYTHON) -m pre_commit install
 
-lint:  ## Ensure ruff is installed and run linting with ruff
-	$(PYTHON) -m pip install --quiet ruff
+lint:  ## Lint project with ruff
 	$(PYTHON) -m ruff check .
 
 format:  ## Format code with ruff
@@ -50,22 +38,18 @@ clean:  ## Clean up build artifacts
 	rm -rf *.egg-info/
 	rm -rf htmlcov/
 	rm -rf .coverage
+	rm -rf .venv/
 	find . -type d -name __pycache__ -delete
 	find . -type f -name "*.pyc" -delete
 
-pre-commit-install:  ## Ensure pre-commit is installed and run hooks on all files
-	$(PYTHON) -m pip install --quiet pre-commit
-	$(PYTHON) -m pre_commit install
-
-pre-commit: pre-commit-install ## Run pre-commit hooks on all files
+pre-commit: ## Run pre-commit hooks on all files
 	$(PYTHON) -m pre_commit run
 
-pre-commit-all: pre-commit-install ## Run pre-commit hooks on all files
+pre-commit-all: ## Run pre-commit hooks on all files
 	$(PYTHON) -m pre_commit run --all-files
 
-build:  ## Build the package
+build: ## Build the package
 	@$(PYTHON) -m pip install --quiet build
-	@$(PYTHON) -m build
 
 tag:  ## Create a git tag using the version from pyproject.toml
 	@VERSION=$$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'); \
