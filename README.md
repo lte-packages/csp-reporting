@@ -7,7 +7,8 @@ sense to collect these reports on a dedicated monitoring server rather than
 taking up bandwidth on production servers for storing this info.
 
 But if you choose to then you can install this package and use it to store
-the reports.
+the reports. This could be as part of a centralized monitoring and alerting
+system or simply as part of your existing Django project.
 
 ## Installation
 
@@ -65,8 +66,8 @@ By default, the endpoint validates that reports come from the same origin as you
 ```python
 # settings.py
 CSP_REPORT_ALLOWED_ORIGINS = [
-    'https://yourdomain.com',
-    'https://www.yourdomain.com',
+    "https://yourdomain.com",
+    "https://www.yourdomain.com",
 ]
 ```
 
@@ -121,13 +122,17 @@ When rate limit is exceeded, the endpoint returns a `429 Too Many Requests` stat
 ```python
 # settings.py
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
 ```
 
 For production, consider using Redis or Memcached for better performance across multiple server instances.
+
+## Contributing
+
+To contribute to this project, please see [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
